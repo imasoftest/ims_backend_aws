@@ -1,8 +1,12 @@
 from django.conf import settings
+from NotificationApp.models import NotificationModel
+from UserApp.models import User
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import permissions, status, viewsets, mixins
 from rest_framework.response import Response
 from anam_backend_main import mypermissions
+from pdb import set_trace as bp
+import os
 from anam_backend_main.constants import Classroom, All, Admin
 import datetime
 from .models import SchoolDocument, MiniClub, ExchangeLibrary, BookStatus, Marketing
@@ -11,32 +15,85 @@ from .serializers import UploadSerializer, SchoolDocumentUploadSerializer, Schoo
     RegisterChildMiniClubSerializer, UnRegisterChildMiniClubSerializer
 from NotificationApp.utils import send_broadcast
 # Create your views here.
-
+from django.core.files.storage import default_storage
+from ChildApp.models import Child
+import json
 
 @api_view(['POST'])
-@permission_classes((permissions.IsAuthenticated,))
+# @permission_classes((permissions.IsAuthenticated,))
 def uploadPicture(request):
 
     serializer = UploadSerializer(request.POST, request.FILES)
     if serializer.is_valid():
-        url = write_uploaded_file(request.FILES['file'])
-        return Response(url)
+        #  Saving POST'ed file to storage
+        file = request.FILES['file']
+        file_name = default_storage.save(file.name, file)
+        file = default_storage.open(file_name)
+        file_url = default_storage.url(file_name)
+        return Response(file_url)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def write_uploaded_file(f):
     media_root = settings.MEDIA_ROOT
     datestr = datetime.datetime.today().strftime("%d-%m-%y-%H-%M-%S")
-
-    with open(f'{media_root}/pictures/{datestr}{f.name}', 'wb+') as destination:
+    with open(os.path.join(r'/home/ubuntu/IMSBackend/upload/pictures/',f.name), 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
-    return f"{settings.MEDIA_URL}pictures/{datestr}{f.name}"
+    return os.path.join(r'/home/ubuntu/IMSBackend/upload/pictures/',f.name)
 
 
 @api_view(['POST'])
-@permission_classes((permissions.IsAuthenticated, mypermissions.IsAdminRole))
+# @permission_classes((permissions.IsAuthenticated, mypermissions.IsAdminRole))
 def uploadSchoolDocument(request, documentFor=All):
+    
+    if 'classRoom_names' in request.data:
+        classRoom_names = json.loads(request.data['classRoom_names'])
+        for classroom_name in classRoom_names:
+            print(classroom_name)
+            # save notification for all parents with classroom
+            parent_id_list = list(Child.objects.filter(nameOfClass = classroom_name).values('parent_id'))
+            for parent in parent_id_list:
+                user_id = parent['parent_id']
+                data = {
+                    "notificationMessage":f"New School document got added",
+                    "module":"School-Document",
+                    "user":User.objects.get(id=user_id)
+                }
+                NotificationModel(**data).save()
+
+            serializer = SchoolDocumentUploadSerializer(data={"url" : request.data['url']})
+            if serializer.is_valid():
+                f = request.FILES['url']
+                serializer.save(name=f.name, documentfor=classroom_name)
+        return Response('Documents added successfully')
+    
+    elif 'parent_ids' in request.data:
+        for parent_id in request.data['parent_ids']:
+            # save notification
+            data = {
+            "notificationMessage":f"New School document got added",
+            "module":"School-Document",
+            "user":User.objects.get(id=parent_id)
+            }
+            NotificationModel(**data).save()
+
+            serializer = SchoolDocumentUploadSerializer(data=request.data['url'])
+            if serializer.is_valid():
+                f = request.FILES['url']
+                serializer.save(name=f.name, documentfor=parent_id)
+        return Response('Documents added successfully')
+    
+    parent_id_list = list(User.objects.all().values('id'))
+    for parent in parent_id_list:
+        user_id = parent['id']
+        data = {
+                    "notificationMessage":f"New School document got added",
+                    "module":"School-Document",
+                    "user":User.objects.get(id=user_id)
+                }
+        NotificationModel(**data).save()
+
     serializer = SchoolDocumentUploadSerializer(data=request.data)
     if serializer.is_valid():
         f = request.FILES['url']
@@ -48,7 +105,7 @@ def uploadSchoolDocument(request, documentFor=All):
 class SchoolDocumentViewSet(viewsets.ReadOnlyModelViewSet, mixins.DestroyModelMixin):
     queryset = SchoolDocument.objects.all()
     serializer_class = SchoolDocumentSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
 
     def destory(self, request, *args, **kwargs):
         if request.user.role != Admin:
@@ -62,7 +119,7 @@ class MiniClubViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def destory(self, request, *args, **kwargs):
-        if request.user.role != Admin:
+        if request.user.role.name != Admin:
             return Response("You don't have enough permission", status=status.HTTP_400_BAD_REQUEST)
         return super().destory(request, *args, **kwargs)
 
@@ -104,11 +161,21 @@ class MiniClubViewSet(viewsets.ModelViewSet):
         send_broadcast()
         return response
 
+    def update(self, request, pk, **kwargs):
+        data = request.data
+        response = MiniClub.objects.filter(id = pk).update(**data)
+        return Response('updated Successfully')
 
 class ExchangeLibraryViewSet(viewsets.ModelViewSet):
+    # def update(self, request, *args, **kwargs):
+    #     bp( )
     queryset = ExchangeLibrary.objects.order_by('title').all()
     serializer_class = ExchangeLibrarySerializer
     permission_classes = (permissions.IsAuthenticated,)
+    # def create(self, request, *args, **kwargs):
+    #     format = '%Y-%m-%d'
+    #     request.data.get('booked_on') = datetime.datetime.strptime(request.data.get('booked_on'), format)
+    #     request.data.get('returned_on') = datetime.datetime.strptime(request.data.get('returned_on'), format)
 
     def destory(self, request, *args, **kwargs):
         if request.user.role != Admin:
@@ -117,11 +184,17 @@ class ExchangeLibraryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path="rentBook")
     def rent_book(self, request, pk=None):
+        child_id = request.data['child_id']
         book = self.get_object()
         if book.status == BookStatus.RENTED:
             return Response("Already Rented By Another User", status=status.HTTP_400_BAD_REQUEST)
         book.status = BookStatus.RENTED
-        book.child = request.user.child
+        book.booked_status = True
+        # book.child = request.user.child
+        children = Child.objects.get(parent=request.user,id=child_id)
+        book.child = children
+        if 'returned_on' not in request.data:
+            book.returned_on = None
         book.save()
         serializer = ExchangeLibrarySerializer(
             book, context=self.get_serializer_context())

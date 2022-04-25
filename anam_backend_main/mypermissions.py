@@ -23,7 +23,7 @@ class IsParentRole(BasePermission):
 
     def has_permission(self, request, view):
         if request.user:
-            return request.user.role == Parent
+            return request.user.role.name == "Parent"
 
 
 class IsAdminTeacherRole(BasePermission):

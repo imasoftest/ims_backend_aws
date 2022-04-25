@@ -11,7 +11,7 @@ class NotificationVerb(models.TextChoices):
 
 
 class Notification(models.Model):
-    """docstring for Profile"""
+   # """docstring for Profile"""
     verb = models.CharField(max_length=255, null=True)
     subject = models.CharField(max_length=255)
     content = models.CharField(max_length=200, default="default messsage")
@@ -31,3 +31,12 @@ class NotificationStatusRecord(models.Model):
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class NotificationModel(models.Model):
+    notificationMessage = models.CharField(max_length=255, null=True)
+    module = models.CharField(max_length=255, null=True)
+    user = models.ForeignKey('UserApp.User', on_delete=models.CASCADE)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    others = models.CharField(max_length=255, null=True)

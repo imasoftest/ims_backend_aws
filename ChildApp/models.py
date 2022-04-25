@@ -2,7 +2,7 @@ from django.db import models
 from anam_backend_main.constants import Parent, Teacher, Admin, \
     Bamboo, Iroko, Baobab, Acajou, Day
 # Create your models here.
-
+import jsonfield
 
 class SiblingGroup(models.Model):
     numberOfSiblings = models.IntegerField(default=0)
@@ -24,6 +24,8 @@ class AuthPerson(models.Model):
     child = models.ForeignKey(
         'Child', on_delete=models.CASCADE, related_name="authPersons")
 
+class PrivacyRights(models.Model):
+    name = jsonfield.JSONField(default=[])
 
 class Child(models.Model):
     nameOfClassSelect = [
@@ -33,8 +35,8 @@ class Child(models.Model):
         (Acajou, 'Acajou')
     ]
     photo = models.ImageField(upload_to='upload')
-    parent = models.OneToOneField(
-        'UserApp.User', on_delete=models.CASCADE, related_name='child')
+    parent = models.ForeignKey(
+        'UserApp.User', on_delete=models.CASCADE)
     #
     sibling_group = models.ForeignKey(
         'SiblingGroup', on_delete=models.CASCADE, related_name="childs")
@@ -42,10 +44,9 @@ class Child(models.Model):
     last_name = models.CharField(max_length=255)
     birth = models.DateField()
     gender = models.CharField(max_length=255)
-    nationality = models.CharField(max_length=255)
+    nationality = models.CharField(max_length=255,null=True)
     address = models.CharField(max_length=255)
-    nameOfClass = models.CharField(max_length=255, choices=nameOfClassSelect,
-                                   default=Baobab)
+    nameOfClass = models.CharField(max_length=255,null=True)
     firstNameOfMother = models.CharField(max_length=255, null=True, blank=True)
     lastNameOfMother = models.CharField(max_length=255, null=True, blank=True)
     phoneOfMother = models.CharField(max_length=255, null=True, blank=True)
@@ -66,12 +67,31 @@ class Child(models.Model):
     allgeries = models.TextField(blank=True)
     food_restriction = models.TextField(blank=True)
     health_issue = models.TextField(blank=True)
+    # Permission Flags'
 
+    flag_video = models.BooleanField(null=True)
+    flag_facebook = models.BooleanField(null=True)
+    flag_newsletter = models.BooleanField(null=True)
+    flag_friday_letter = models.BooleanField(null=True)
+    flag_internet_sites = models.BooleanField(null=True)
+    flag_yearbook = models.BooleanField(null=True)
+    flag_flyer = models.BooleanField(null=True)
+    flag_magazine = models.BooleanField(null=True)
+    flag_instagram = models.BooleanField(null=True)
+
+    flag_re_enrollment = models.BooleanField(null=True)
+    flag_responsibility_discharge = models.BooleanField(null=True)
+    flag_image_rights = models.BooleanField(null=True)
+    flag_health_protocols = models.BooleanField(null=True)
+    flag_fin_contract = models.BooleanField(null=True)
+    flag_interieur_rules = models.BooleanField(null=True)
+    siblings = models.CharField(max_length=500,null=True)  
+    privacyRights = jsonfield.JSONField(default=[],null=True)
 
 class Picture(models.Model):
     receiver = models.ForeignKey(
         Child, on_delete=models.CASCADE, related_name="pictures")
-    image = models.ImageField(upload_to='upload/pictures')
+    image = models.FileField(upload_to='upload/pictures')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -120,8 +140,8 @@ class ChildDailyInformation(models.Model):
     ate_comment = models.TextField(blank=True)
     menu = models.ForeignKey(MenuItem, on_delete=models.SET_NULL, null=True)
     comment = models.TextField(blank=True)
-    nap_start_time = models.DateTimeField()
-    nap_end_time = models.DateTimeField()
+    nap_start_time = models.DateTimeField(null = True)
+    nap_end_time = models.DateTimeField(null = True)
     is_bowel_move = models.BooleanField(default=False)
     bowel_movement_time = models.IntegerField()
 

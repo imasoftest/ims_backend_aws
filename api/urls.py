@@ -15,6 +15,7 @@ router.register(r'menuitems', ChildAppViews.MenuItemViewSet, basename='menuitems
 
 
 urlpatterns = [
+    # path('exchangelibraries/', views.ExchangeLibraryViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('', include(router.urls)),
     path('user/', include('UserApp.urls')),
     path('child/', include('ChildApp.urls')),

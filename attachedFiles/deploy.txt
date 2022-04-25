@@ -1,0 +1,52 @@
+IMS next week :
+
+logout for parent application
+epipen or any medicine details update in child profile
+notification and appointment center similar lo message center
+update both the applications
+
+https://valuelabs.bluejeans.com/734773767/3622
+https://bluejeans.com/734773767/7774335
+
+Android emulator steps :
+ionic cordova prepare android
+ionic cordova run android --emulator --livereload
+
+
+ionic capacitor add android 
+ionic capacitor copy android && cd android && ./gradlew assembleDebug && cd ..
+assembleRelease - for release apk
+
+jarsigner -keystore D:\IMS\initial_docs\IMS_Android_keyinfo -storepass testpassword app-release-unsigned.apk ims_key_store1.jks &&
+zipalign 4 app-release-unsigned.apk app-release.apk
+
+jarsigner -keystore D:\IMS\initial_docs\IMS_Android_keyinfo\ims_key_store1 -storetype JKS -storepass testpassword app-release-unsigned.apk testpassword
+
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore myapp.keystore app-release-unsigned.apk myapp
+
+keytool -v -list -keystore D:\IMS\Anam_code\Anam_code\MonteorySchoolApp-master\android\app\build\outputs\apk\release
+
+jarsigner -keystore D:\IMS\Anam_code\Anam_code\MonteorySchoolApp-master\android\app\build\outputs\apk\release -storetype JKS -storepass testpassword app-release-unsigned.apk D:\IMS\Anam_code\Anam_code\MonteorySchoolApp-master\android\app\build\outputs\apk\release\alias_key0
+
+
+adb.exe logcat -v threadtime emulator-5554 &gt; C:\android-debug.log
+
+https://github.valuelabs.com/ims/ims_backend.git
+
+
+teacher/admin get api : ${this.api_url}/user/?role=3
+post : `${this.api_url}/user/`,user
+
+
+
+Magesh, Mandar, Reeja , Ali, ajay, Srinath, Muneer, Shohaib
+
+1	SuperAdmin
+2	Admin
+3	Teacher
+4	Parent
+5	Child
+6	Assistant
+7	Personnel
+
+----------------------------------------

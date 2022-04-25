@@ -27,6 +27,7 @@ class SchoolDocumentUploadSerializer(serializers.ModelSerializer):
 
 class MiniClubSerializer(serializers.ModelSerializer):
     children = SibilngChildSerializer(many=True, read_only=True)
+    isPaid = serializers.JSONField()
 
     class Meta:
         model = MiniClub
@@ -41,8 +42,8 @@ UnRegisterChildMiniClubSerializer = RegisterChildMiniClubSerializer
 
 
 class ExchangeLibrarySerializer(serializers.ModelSerializer):
-    child = SibilngChildSerializer(read_only=True)
-
+    # child = SibilngChildSerializer(read_only=True)
+    
     class Meta:
         model = ExchangeLibrary
         fields = '__all__'

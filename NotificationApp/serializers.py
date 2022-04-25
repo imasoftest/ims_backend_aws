@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Notification, NotificationStatusRecord
+from .models import Notification, NotificationStatusRecord, NotificationModel
 from UserApp.serializers import UserSerializer
 from UserApp.models import User
 from ChildApp.models import Child
@@ -59,3 +59,14 @@ class NotificationReceiverSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationStatusRecord
         fields = ('receiver', 'is_read', 'id')
+
+
+class NotificationGlobalSerializer(serializers.ModelSerializer):
+    # user = serializers.CharField(read_only=True)
+
+    
+    class Meta:
+        model = NotificationModel
+        fields = '__all__'
+
+        

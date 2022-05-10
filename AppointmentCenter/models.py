@@ -2,6 +2,7 @@ from django.db import models
 # Create your models here.
 from UserApp.models import ClassData
 
+
 class COLOR(models.TextChoices):
     Red = 'red'
     Blue = 'blue'
@@ -94,15 +95,15 @@ class PresetRecord(models.Model):
 
 
 class PresetAppointment(models.Model):
-    title = models.CharField(max_length=100,null=True)
-    presetInfo = models.CharField(max_length = 100)
-    className = models.ForeignKey(ClassData,on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, null=True)
+    presetInfo = models.CharField(max_length=100)
+    className = models.ForeignKey(ClassData, on_delete=models.CASCADE)
     startDate = models.DateField(null=True)
     endDate = models.DateField(null=True)
     startTime = models.TimeField(null=True)
     endTime = models.TimeField(null=True)
     duration = models.IntegerField(null=True)
-    price = models.FloatField(null = True)
+    price = models.FloatField(null=True)
     # timerange = models.ForeignKey(
     #     'TimeRangeItem', on_delete=models.CASCADE, related_name='preset_appointments',null=True)
     # child = models.ForeignKey('ChildApp.Child', on_delete=models.CASCADE)
@@ -114,8 +115,8 @@ class PresetAppointment(models.Model):
 
 
 class PresetAppointmentSessions(models.Model):
-    appointment = models.ForeignKey(PresetAppointment,on_delete=models.CASCADE)
-    child = models.ForeignKey('ChildApp.Child',on_delete=models.CASCADE,null=True)
+    appointment = models.ForeignKey(PresetAppointment, on_delete=models.CASCADE)
+    child = models.ForeignKey('ChildApp.Child', on_delete=models.CASCADE, null=True)
     # start = models.DateTimeField(null=True)
     # end = models.DateTimeField(null=True)
     startDate = models.DateField(null=True)

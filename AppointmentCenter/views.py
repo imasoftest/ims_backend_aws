@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from multiprocessing.sharedctypes import Value
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import viewsets, status
@@ -26,7 +27,6 @@ from anam_backend_main.constants import Parent, Teacher, Admin, \
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
-    print('c est bien moi AppointmentViewSet')
     queryset = Appointment.objects.all()
     serializer_class = AppointmentWriteSerializer
 
@@ -73,6 +73,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return Response({"Appointment deleted"})
 
         Appointment.objects.filter(id=appointment_id).update(status=status)
+        updated_status = Appointment.objects.filter(id=appointment_id).values('status')[0]
 
         # CAll Notification for teacher
         data = {
@@ -89,7 +90,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         }
         NotificationModel(**data).save()
 
-        return Response({"Status updated"})
+        return Response({"message":"Status updated","updated_status":updated_status})
 
 
 class PresetRecordViewSet(viewsets.ModelViewSet):

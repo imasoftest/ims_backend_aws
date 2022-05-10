@@ -1,0 +1,10 @@
+﻿Admin Django
+
+super user :
+username:ims
+password:1234
+
+user registering from imsUser :
+admin user :
+username:admin-keita
+password:123456789

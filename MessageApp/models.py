@@ -27,5 +27,3 @@ class Message(models.Model):
     lastMessage = models.ForeignKey('Message', on_delete=models.CASCADE, null=True, blank=True, related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
